@@ -199,7 +199,8 @@ class ServiceClient:
         self.mres = getattr(s, service+"Response")
         srv = getattr(s, service)
         rospy.loginfo("Starting service client, waiting for service '" + self.topic + "'")
-        rospy.wait_for_service(self.topic)
+        # TODO: service does not work when announced later
+        # rospy.wait_for_service(self.topic)
         self.proxy = rospy.ServiceProxy(self.topic, srv)
 
     def handlePacket(self, data):
