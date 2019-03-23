@@ -538,6 +538,8 @@ class SerialClient(object):
                     self.lastsync_success = rospy.Time.now()
                     try:
                         self.callbacks[topic_id](msg)
+                    except rospy.service.ServiceException as e:
+                        rospy.logerr(e)
                     except KeyError:
                         rospy.logerr("Tried to publish before configured, topic id %d" % topic_id)
                         self.requestTopics()
