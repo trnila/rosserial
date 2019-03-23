@@ -780,23 +780,20 @@ class SerialClient(object):
         Main loop for the thread that processes outgoing data to write to the serial port.
         """
         while not rospy.is_shutdown():
-            if self.write_queue.empty():
-                time.sleep(0.01)
-            else:
-                data = self.write_queue.get()
-                while True:
-                    try:
-                        if isinstance(data, tuple):
-                            topic, msg = data
-                            self._send(topic, msg)
-                        elif isinstance(data, basestring):
-                            self._write(data)
-                        else:
-                            rospy.logerr("Trying to write invalid data type: %s" % type(data))
-                        break
-                    except SerialTimeoutException as exc:
-                        rospy.logerr('Write timeout: %s' % exc)
-                        time.sleep(1)
+            data = self.write_queue.get()
+            while True:
+                try:
+                    if isinstance(data, tuple):
+                        topic, msg = data
+                        self._send(topic, msg)
+                    elif isinstance(data, basestring):
+                        self._write(data)
+                    else:
+                        rospy.logerr("Trying to write invalid data type: %s" % type(data))
+                    break
+                except SerialTimeoutException as exc:
+                    rospy.logerr('Write timeout: %s' % exc)
+                    time.sleep(1)
 
     def sendDiagnostics(self, level, msg_text):
         msg = diagnostic_msgs.msg.DiagnosticArray()
