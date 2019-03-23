@@ -61,6 +61,8 @@ ERROR_MISMATCHED_PROTOCOL = "Mismatched protocol version in packet: lost sync or
 ERROR_NO_SYNC = "no sync with device"
 ERROR_PACKET_FAILED = "Packet Failed : Failed to read msg data"
 
+SERVICE_TIMEOUT=10
+
 def load_pkg_module(package, directory):
     #check if its in the python path
     path = sys.path
@@ -160,6 +162,7 @@ class ServiceServer:
 
         # response message
         self.data = None
+        self.done = None
 
     def unregister(self):
         rospy.loginfo("Removing service: %s", self.topic)
@@ -170,16 +173,18 @@ class ServiceServer:
         data_buffer = StringIO.StringIO()
         req.serialize(data_buffer)
         self.response = None
-        if self.parent.send(self.id, data_buffer.getvalue()) >= 0:
-            while self.response is None:
-                pass
+        self.done = threading.Condition()
+        ret = self.parent.send(self.id, data_buffer.getvalue());
+        with self.done:
+            self.done.wait(SERVICE_TIMEOUT)
         return self.response
 
     def handlePacket(self, data):
         """ Forward response to ROS network. """
         r = self.mres()
-        r.deserialize(data)
-        self.response = r
+        self.response = r.deserialize(data)
+        with self.done:
+            self.done.notify()
 
 
 class ServiceClient:
