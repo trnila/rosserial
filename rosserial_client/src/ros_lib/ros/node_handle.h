@@ -345,6 +345,7 @@ public:
               subscribers[topic_ - 100]->callback(message_in);
           }
         }
+        break;
       }
     }
 
